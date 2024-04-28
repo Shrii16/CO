@@ -1,0 +1,73 @@
+1]App.py
+
+from flask import Flask
+from redis import Redis
+
+redis = Redis(host='redis',port=6379)
+app = Flask(_name_)
+
+def gethits():
+    try:
+        redis.incr('hits')
+        return redis.get('hits')
+    except Exception as e:
+        return "Error while retrieving hit count"
+
+@app.route('/')
+def mainpage():
+    return f"This site have been visited (times): {gethits()}"
+
+if _name=="main_":
+    app.run(host='0.0.0.0',debug=True)
+
+
+
+2] yml file
+
+version: '3'
+
+services: 
+  web:
+    image: "divyapujari/server:latest"
+    ports: 
+      - "5000:5000"
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 50m
+    restart: on-failure
+    networks:
+      - webnet
+  redis:
+    image: "redis:latest"
+    deploy:
+      replicas: 1
+    ports:
+      - "6379:6379"
+    networks:
+      - webnet
+networks:
+  webnet:
+
+
+3]requirements.txt
+
+flask 
+redis
+
+
+4] Docker File
+
+
+FROM python:3.8-slim
+WORKDIR app/
+COPY . .
+RUN pip install -r requirements.txt
+EXPOSE 5000
+CMD ["python","app.py"]
+
+
+
+
